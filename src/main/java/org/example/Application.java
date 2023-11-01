@@ -15,8 +15,10 @@ public class Application {
         input = input.split(" ")[0];
         while(!input.equals("exit")){
             if(input.equals("auth")){
-                System.out.println(authenticator.getAuth_link());
+                Controller.getAccessCode();;
+                Controller.getAccessToken();
                 System.out.println("---SUCCESS---");
+                //scanner.nextLine();
                 authenticator.setAuthenticated(true);
             }
             if(authenticator.isAuthenticated()) {
@@ -52,5 +54,6 @@ public class Application {
             }
         }
         System.out.println("---GOODBYE!---");
+    }
     }
 }

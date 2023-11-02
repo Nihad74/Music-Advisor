@@ -1,5 +1,6 @@
 package org.example;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Application {
@@ -10,7 +11,7 @@ public class Application {
         scanner = new Scanner(System.in);
         authenticator = new Authenticator();
     }
-    public void startApplication(){
+    public void startApplication(String args) throws IOException, InterruptedException {
         String input = scanner.nextLine();
         input = input.split(" ")[0];
         while(!input.equals("exit")){
@@ -54,6 +55,5 @@ public class Application {
             }
         }
         System.out.println("---GOODBYE!---");
-    }
     }
 }

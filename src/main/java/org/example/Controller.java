@@ -10,11 +10,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import com.google.gson.JsonParser;
 
 public class Controller {
 
-    private static String authCode ="";
+    private static String authCode = "";
     private static String accessToken = "";
+
     public static void getAccessCode() throws IOException, InterruptedException {
         HttpServer server = HttpServer.create();
         server.bind(new InetSocketAddress(8080), 0);
@@ -27,10 +29,10 @@ public class Controller {
                     public void handle(HttpExchange exchange) throws IOException {
                         String query = exchange.getRequestURI().getQuery();
                         String result = "";
-                        if(query != null && query.contains("code")){
+                        if (query != null && query.contains("code")) {
                             authCode = query.substring(5);
                             result = "Got the code. Return back to your program.";
-                        }else {
+                        } else {
                             result = "Authorization code not found. Try again.";
                         }
                         exchange.sendResponseHeaders(200, result.length());
@@ -39,7 +41,7 @@ public class Controller {
                     }
                 }
         );
-        while(authCode.equals("")){
+        while (authCode.equals("")) {
             Thread.sleep(10);
         }
         server.stop(10);
@@ -48,25 +50,20 @@ public class Controller {
     public static void getAccessToken() throws IOException, InterruptedException {
         System.out.println("making http request for access token...");
         HttpRequest request = HttpRequest.newBuilder()
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .uri(URI.create(Data.auth_server_path + "/api/token"))
                 .POST(HttpRequest.BodyPublishers.ofString(
                         "&grant_type=" + "authorization_code"
                                 + "&code=" + authCode
-                                + "&redirect_uri=" + Data.redirect_URL
                                 + "&client_id=" + Data.client_id
-                                + "&client_secret=" + Data.client_Secret))
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .uri(URI.create(Data.access_toke_from_url))
+                                + "&client_secret=" + Data.client_Secret
+                                + "&redirect_uri=" + Data.redirect_URL
+                ))
                 .build();
         HttpClient client = HttpClient.newBuilder().build();
         HttpResponse<String> responseWithToken = client.send(request, HttpResponse.BodyHandlers.ofString());
         accessToken = JsonParser.parseString(responseWithToken.body()).getAsJsonObject().get("access_token").getAsString();
-        //System.out.println(accessToken);
+        System.out.println(responseWithToken.body());
 
     }
-
-    public static void requestAuthCode(){
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(Data.redirect_URL))
-                .GET()
-                .build();
-    }}
+}

@@ -1,5 +1,6 @@
 package org.example;
 
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -24,46 +25,67 @@ public class Controller {
         System.out.println("use this link to request the access code:");
         System.out.println(Data.auth_link);
         server.createContext("/",
-                new HttpHandler() {
-                    @Override
-                    public void handle(HttpExchange exchange) throws IOException {
-                        String query = exchange.getRequestURI().getQuery();
-                        String result = "";
-                        if (query != null && query.contains("code")) {
-                            authCode = query.substring(5);
-                            result = "Got the code. Return back to your program.";
-                        } else {
-                            result = "Authorization code not found. Try again.";
-                        }
-                        exchange.sendResponseHeaders(200, result.length());
-                        exchange.getResponseBody().write(result.getBytes());
-                        System.out.println(result);
+                exchange -> {
+                    String query = exchange.getRequestURI().getQuery();
+                    String response ;
+                    if(query != null && query.contains("code")){
+                        authCode = query.substring(5);
+                        response="Got the code. Return back to your program.";
+                    }else{
+                        response = "Authorization code not found. Try again.";
                     }
+                    exchange.sendResponseHeaders(200, response.length());
+                    exchange.getResponseBody().write(response.getBytes());
+                    exchange.getResponseBody().close();
                 }
         );
-        while (authCode.equals("")) {
+        System.out.println("waiting for code...");
+        while (authCode.isEmpty()) {
+            makeSimpleGreet();
             Thread.sleep(10);
         }
         server.stop(10);
     }
 
+    private static void makeSimpleGreet() throws IOException, InterruptedException {
+        HttpClient.newBuilder().build().send(
+                HttpRequest.newBuilder()
+                        .uri(URI.create(Data.redirect_URL))
+                        .GET()
+                        .build()
+                , HttpResponse.BodyHandlers.ofString());
+    }
+
     public static void getAccessToken() throws IOException, InterruptedException {
-        System.out.println("making http request for access token...");
+        System.out.println("making http request for access_token...");
+        System.out.println("response:");
+
         HttpRequest request = HttpRequest.newBuilder()
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .uri(URI.create(Data.auth_server_path + "/api/token"))
                 .POST(HttpRequest.BodyPublishers.ofString(
-                        "&grant_type=" + "authorization_code"
-                                + "&code=" + authCode
-                                + "&client_id=" + Data.client_id
-                                + "&client_secret=" + Data.client_Secret
-                                + "&redirect_uri=" + Data.redirect_URL
-                ))
+                        "grant_type=authorization_code" +
+                                "&code=" + authCode +
+                                "&client_id=" + Data.client_id +
+                                "&client_secret=" + Data.client_Secret +
+                                "&redirect_uri=" + Data.redirect_URL))
                 .build();
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpResponse<String> responseWithToken = client.send(request, HttpResponse.BodyHandlers.ofString());
-        accessToken = JsonParser.parseString(responseWithToken.body()).getAsJsonObject().get("access_token").getAsString();
-        System.out.println(responseWithToken.body());
+
+        try {
+            HttpClient client = HttpClient.newBuilder().build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response != null) {
+                parseAccessToken(response.body());
+                System.out.println(response.body());
+            }
+
+        } catch (IOException | NullPointerException | InterruptedException e) {
+            System.out.println("Server error");
+        }
+    }
+    private static void parseAccessToken(String body) throws NullPointerException {
+        JsonObject object = JsonParser.parseString(body).getAsJsonObject();
+        accessToken = object.get("access_token").getAsString();
 
     }
 }

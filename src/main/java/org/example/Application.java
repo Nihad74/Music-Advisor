@@ -19,7 +19,7 @@ public class Application {
                 Controller.getAccessCode();;
                 Controller.getAccessToken();
                 System.out.println("---SUCCESS---");
-                //scanner.nextLine();
+                input = scanner.nextLine();
                 authenticator.setAuthenticated(true);
             }
             if(authenticator.isAuthenticated()) {

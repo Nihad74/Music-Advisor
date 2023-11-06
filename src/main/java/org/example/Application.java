@@ -1,54 +1,57 @@
 package org.example;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Application {
     private Scanner scanner;
+    private Authenticator authenticator;
 
     public Application(){
         scanner = new Scanner(System.in);
+        authenticator = new Authenticator();
     }
-    public void startApplication(){
+    public void startApplication(String args) throws IOException, InterruptedException {
         String input = scanner.nextLine();
         input = input.split(" ")[0];
         while(!input.equals("exit")){
-            switch (input) {
-                case "new" -> {
-                    System.out.println("---NEW RELEASES---\n" +
-                            "Mountains [Sia, Diplo, Labrinth]\n" +
-                            "Runaway [Lil Peep]\n" +
-                            "The Greatest Show [Panic! At The Disco]\n" +
-                            "All Out Life [Slipknot]");
-                    input = scanner.nextLine();
+            if(input.equals("auth")){
+                Controller.getAccessCode();;
+                Controller.getAccessToken();
+                System.out.println("---SUCCESS---");
+                input = scanner.nextLine();
+                authenticator.setAuthenticated(true);
+            }
+            if(authenticator.isAuthenticated()) {
+                switch (input) {
+                    case "new" -> {
+                        Commands new_Command = new New();
+                        System.out.println(new_Command.printInformation());
+                        input = scanner.nextLine();
+                    }
+                    case "featured" -> {
+                        Commands featured_Command = new Featured();
+                        System.out.println(featured_Command.printInformation());
+                        input = scanner.nextLine();
+                    }
+                    case "categories" -> {
+                        Commands categories_Command = new Categories();
+                        System.out.println(categories_Command.printInformation());
+                        input = scanner.nextLine();
+                    }
+                    case "playlists" -> {
+                        Commands playlist_Command = new Playlist();
+                        System.out.println(playlist_Command.printInformation());
+                        input = scanner.nextLine();
+                    }
+                    default -> {
+                        System.out.println("wrong input");
+                        input = scanner.nextLine();
+                    }
                 }
-                case "featured" -> {
-                    System.out.println("---FEATURED---\n" +
-                            "Mellow Morning\n" +
-                            "Wake Up and Smell the Coffee\n" +
-                            "Monday Motivation\n" +
-                            "Songs to Sing in the Shower");
-                    input = scanner.nextLine();
-                }
-                case "categories" -> {
-                    System.out.println("---CATEGORIES---\n" +
-                            "Top Lists\n" +
-                            "Pop\n" +
-                            "Mood\n" +
-                            "Latin");
-                    input = scanner.nextLine();
-                }
-                case "playlists" -> {
-                    System.out.println("---MOOD PLAYLISTS---\n" +
-                            "Walk Like A Badass  \n" +
-                            "Rage Beats  \n" +
-                            "Arab Mood Booster  \n" +
-                            "Sunday Stroll");
-                    input = scanner.nextLine();
-                }
-                default -> {
-                    System.out.println("wrong input");
-                    input = scanner.nextLine();
-                }
+            }else{
+                System.out.println("Please, provide access for application.");
+                input = scanner.nextLine();
             }
         }
         System.out.println("---GOODBYE!---");

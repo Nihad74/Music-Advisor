@@ -13,35 +13,32 @@ public class Application {
     }
     public void startApplication(String args) throws IOException, InterruptedException {
         String input = scanner.nextLine();
-        input = input.split(" ")[0];
         while(!input.equals("exit")){
+            input = input.split(" ")[0];
+            String input2 = input.split(" ")[1];
             if(input.equals("auth")){
                 Controller.getAccessCode();;
                 Controller.getAccessToken();
                 System.out.println("---SUCCESS---");
-                input = scanner.nextLine();
                 authenticator.setAuthenticated(true);
+                input = scanner.nextLine();
             }
             if(authenticator.isAuthenticated()) {
                 switch (input) {
                     case "new" -> {
-                        Commands new_Command = new New();
-                        System.out.println(new_Command.printInformation());
+                        Controller.getNewReleases();
                         input = scanner.nextLine();
                     }
                     case "featured" -> {
-                        Commands featured_Command = new Featured();
-                        System.out.println(featured_Command.printInformation());
+                        Controller.getFeaturedPlaylists();
                         input = scanner.nextLine();
                     }
                     case "categories" -> {
-                        Commands categories_Command = new Categories();
-                        System.out.println(categories_Command.printInformation());
+                        Controller.getCategories();
                         input = scanner.nextLine();
                     }
                     case "playlists" -> {
-                        Commands playlist_Command = new Playlist();
-                        System.out.println(playlist_Command.printInformation());
+                        Controller.getPlaylists(input2);
                         input = scanner.nextLine();
                     }
                     default -> {

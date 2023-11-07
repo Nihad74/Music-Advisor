@@ -10,6 +10,8 @@ public class Data {public static final String client_id ="607396c3701b4c6197129b
             "&redirect_uri=" + redirect_URL+
             "&response_type=code";
 
-    public static final String newReleases = "https://api.spotify.com/v1/browse/new-releases";
+    public static String newReleases = "https://api.spotify.com/v1/browse/new-releases";
+    public static String featuredPlaylist = "https://api.spotify.com/v1/browse/featured-playlists";
+    public static String getCategories = "https://api.spotify.com/v1/browse/categories";
 
 }

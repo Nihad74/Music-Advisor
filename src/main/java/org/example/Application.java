@@ -1,56 +1,79 @@
 package org.example;
 
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.util.Scanner;
 
 public class Application {
     private Scanner scanner;
     private Authenticator authenticator;
+    private String input="";
+    private String input2 = "";
 
     public Application(){
         scanner = new Scanner(System.in);
         authenticator = new Authenticator();
     }
     public void startApplication(String args) throws IOException, InterruptedException {
-        String input = scanner.nextLine();
+        readInput();
         while(!input.equals("exit")){
-            input = input.split(" ")[0];
-            String input2 = input.split(" ")[1];
             if(input.equals("auth")){
                 Controller.getAccessCode();;
                 Controller.getAccessToken();
                 System.out.println("---SUCCESS---");
                 authenticator.setAuthenticated(true);
-                input = scanner.nextLine();
+                readInput();
             }
             if(authenticator.isAuthenticated()) {
                 switch (input) {
                     case "new" -> {
-                        Controller.getNewReleases();
-                        input = scanner.nextLine();
+                        HttpResponse<String> response = Controller.getRequest(Data.newReleasesEndPoint);
+                        View.validateGetNewReleasesResponse(response);
+                        readInput();
                     }
                     case "featured" -> {
-                        Controller.getFeaturedPlaylists();
-                        input = scanner.nextLine();
+                        HttpResponse<String> response = Controller.getRequest(Data.featuredPlaylistEndpoint);
+                        View.validateFeaturedReleases(response);
+                        readInput();
                     }
                     case "categories" -> {
-                        Controller.getCategories();
-                        input = scanner.nextLine();
+                        HttpResponse<String> response = Controller.getRequest(Data.getCategoriesEndpoint);
+                        View.validateCategories(response);
+                        readInput();
                     }
                     case "playlists" -> {
-                        Controller.getPlaylists(input2);
-                        input = scanner.nextLine();
+                        HttpResponse <String> response =Controller.getPlaylists(Data.getCategoriesEndpoint, input2);
+                        if(response != null) {
+                            View.validatePlaylists(response);
+                        }
+                        readInput();
+                    }
+                    case "exit" ->{
+
                     }
                     default -> {
                         System.out.println("wrong input");
-                        input = scanner.nextLine();
+                        readInput();
                     }
                 }
             }else{
                 System.out.println("Please, provide access for application.");
-                input = scanner.nextLine();
+                readInput();
             }
         }
         System.out.println("---GOODBYE!---");
+    }
+
+    public void readInput(){
+        input = scanner.nextLine();
+        String[] inputArray = input.split(" ");
+        input = input.split(" ")[0];
+        if(inputArray.length > 1) {
+            input2 = "";
+            for(int i = 1; i < inputArray.length-1; i++ ){
+                input2 += inputArray[i] + " ";
+            }
+            input2 += inputArray[inputArray.length-1];
+        }
     }
 }

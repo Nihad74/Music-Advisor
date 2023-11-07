@@ -14,6 +14,7 @@ public class Main {
             map.put(args[i], args[i+1]);
         }
         Data.auth_server_path = map.get("-access") == null ?  "https://accounts.spotify.com" : map.get("-access");
+        Data.playListAPI = map.get("-resource") == null ? Data.playListAPI: map.get("-resource");
         application.startApplication(null);
     }
 }

@@ -43,13 +43,13 @@ public class Controller {
         );
         System.out.println("waiting for code...");
         while (authCode.isEmpty()) {
-            makeSimpleGreet();
+            getAuthCode();
             Thread.sleep(10);
         }
         server.stop(10);
     }
 
-    private static void makeSimpleGreet() throws IOException, InterruptedException {
+    private static void getAuthCode() throws IOException, InterruptedException {
         HttpClient.newBuilder().build().send(
                 HttpRequest.newBuilder()
                         .uri(URI.create(Data.redirect_URL))
@@ -60,8 +60,6 @@ public class Controller {
 
     public static void getAccessToken() throws IOException, InterruptedException {
         System.out.println("making http request for access_token...");
-        System.out.println("response:");
-
         HttpRequest request = HttpRequest.newBuilder()
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .uri(URI.create(Data.auth_server_path + "/api/token"))
@@ -88,98 +86,38 @@ public class Controller {
     private static void parseAccessToken(String body) throws NullPointerException {
         JsonObject object = JsonParser.parseString(body).getAsJsonObject();
         accessToken = object.get("access_token").getAsString();
-
     }
 
-    public static void getNewReleases() throws IOException, InterruptedException {
+    public static HttpResponse<String> getRequest(String input) throws IOException, InterruptedException {
         HttpRequest getReleases = HttpRequest.newBuilder()
-                .header("Authorization", "Authorization: Bearer "+ accessToken)
-                .uri(URI.create(Data.newReleases + "?country=US&offset=0&limit=5"))
+                .header("Authorization", "Bearer "+ accessToken)
+                .uri(URI.create(Data.playListAPI + input))
                 .GET()
                 .build();
         HttpClient client = HttpClient.newBuilder()
                 .build();
-        HttpResponse<String> response = client.send(getReleases, HttpResponse.BodyHandlers.ofString());
-        validateGetNewReleasesResponse(response);
+        return client.send(getReleases, HttpResponse.BodyHandlers.ofString());
     }
 
-    public static void getFeaturedPlaylists() throws IOException, InterruptedException {
-        HttpRequest getFeaturedPlaylists = HttpRequest.newBuilder()
-                .header("Authorization", "Authorization: Bearer "+ accessToken)
-                .uri(URI.create(Data.featuredPlaylist + "?country=US&offset=0&limit=5"))
-                .GET()
-                .build();
-        HttpClient client = HttpClient.newBuilder()
-                .build();
-        HttpResponse<String> response = client.send(getFeaturedPlaylists, HttpResponse.BodyHandlers.ofString());
-        validateFeaturedReleases(response);
-    }
 
-    public static void validateFeaturedReleases(HttpResponse<String> response){
-        JsonObject responseObject = JsonParser.parseString(response.body()).getAsJsonObject();
-        JsonObject playlistObject = responseObject.getAsJsonObject("playlists");
-        JsonArray items = playlistObject.getAsJsonArray("items");
-        for(JsonElement item : items){
-            String playlist_name ="";
-            String url ="";
-            JsonObject itemObject = item.getAsJsonObject();
-            url = itemObject.getAsJsonObject("external_urls").get("spotify").getAsString();
-            playlist_name = itemObject.get("name").getAsString();
-            System.out.println(playlist_name +"\n" + url + "\n");
-        }
-    }
-
-    public static void validateGetNewReleasesResponse(HttpResponse<String> response){
-        JsonObject responseObject = JsonParser.parseString(response.body()).getAsJsonObject();
-        JsonObject albumsObject = responseObject.getAsJsonObject("albums");
-        JsonArray items = albumsObject.getAsJsonArray("items");
-        for(JsonElement item : items){
-            String albumName = "";
-            StringBuilder bandName = new StringBuilder();
-            bandName.append("[");
-            String url = "";
-            JsonObject itemObject = item.getAsJsonObject();
-            JsonArray artists = itemObject.getAsJsonArray("artists");
-            for(JsonElement artist: artists){
-                JsonObject artistObject = artist.getAsJsonObject();
-                url = artistObject.getAsJsonObject("external_urls")
-                        .get("spotify").getAsString();
-                bandName.append( artist.getAsJsonObject().get("name").getAsString());
-                bandName.append("]");
-
-            }
-            albumName = itemObject.get("name").getAsString();
-            System.out.println(albumName+ "\n" + bandName + "\n" + url + "\n");
-        }
-    }
-
-    public static void getCategories() throws IOException, InterruptedException {
-        HttpRequest getFeaturedPlaylists = HttpRequest.newBuilder()
-                .header("Authorization", "Authorization: Bearer "+ accessToken)
-                .uri(URI.create(Data.getCategories + "?country=US&offset=0&limit=10"))
-                .GET()
-                .build();
-        HttpClient client = HttpClient.newBuilder()
-                .build();
-        HttpResponse<String> response = client.send(getFeaturedPlaylists, HttpResponse.BodyHandlers.ofString());
-        validateCategories(response);
-    }
-
-    private static void validateCategories(HttpResponse<String> response) {
+    public static HttpResponse<String> getPlaylists(String input, String input2) throws IOException, InterruptedException {
+        HttpResponse<String> response = getRequest(input);
+        String id ="";
         JsonObject responseObject = JsonParser.parseString(response.body()).getAsJsonObject();
         JsonObject categories = responseObject.getAsJsonObject("categories");
         JsonArray items = categories.getAsJsonArray("items");
         for(JsonElement item :items){
-            String name ="";
             JsonObject itemObject = item.getAsJsonObject();
-            name = itemObject.get("name").getAsString();
-            System.out.println(name);
+            String name = itemObject.get("name").getAsString();
+            if(name.equalsIgnoreCase(input2)){
+                id = itemObject.get("id").getAsString();
+                break;
+            }
         }
+        if(id.equals("")){
+            System.out.println("Unknown category name.");
+            return null;
+        }
+        return getRequest(String.format(Data.getPlaylists, id));
     }
-
-   /* public static void getPlaylists(String input) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .header("Authorization", "Authorization: Bearer " + accessToken)
-
-    }*/
 }

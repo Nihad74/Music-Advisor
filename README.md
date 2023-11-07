@@ -1,5 +1,5 @@
 # Music-Advisor
-A music advisor that makes preference-based suggestions 
+A CLI-Application that makes preference-based music suggestions 
 
 This application works with the Spotify WebAPI (https://developer.spotify.com/documentation/web-api)
 

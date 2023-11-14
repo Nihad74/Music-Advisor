@@ -8,3 +8,5 @@ User's get suggestions about ....
 - Spotify featured playlists with their links
 - categories they might be interested in
 - playlists based on a cateogory name
+
+The retrieved information is paginated => Users can let them show more options by typing next into terminal or prev to go back 

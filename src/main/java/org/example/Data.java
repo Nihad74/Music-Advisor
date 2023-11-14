@@ -12,9 +12,10 @@ public class Data {
             "&redirect_uri=" + redirect_URL+
             "&response_type=code";
     public static String playListAPI = "https://api.spotify.com";
-    public static String newReleasesEndPoint = "/v1/browse/new-releases?country=US&offset=0&limit=5";
-    public static String featuredPlaylistEndpoint = "/v1/browse/featured-playlists?country=US&offset=0&limit=5";
-    public static String getCategoriesEndpoint = "/v1/browse/categories?country=US&offset=0&limit=20";
-    public static String getPlaylists ="/v1/browse/categories/%s/playlists?country=US";
+    public static int entriesPerPage = 5;
+    public static String newReleasesEndPoint = "/v1/browse/new-releases?country=US&offset=%d&limit=%d";
+    public static String featuredPlaylistEndpoint = "/v1/browse/featured-playlists?country=US&offset=%d&limit=%d";
+    public static String getCategoriesEndpoint = "/v1/browse/categories?country=US&offset=%d&limit=%d";
+    public static String getPlaylists ="/v1/browse/categories/%s/playlists";
 
 }

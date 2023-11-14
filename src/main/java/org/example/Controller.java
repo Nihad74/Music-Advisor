@@ -76,7 +76,6 @@ public class Controller {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response != null) {
                 parseAccessToken(response.body());
-                System.out.println(response.body());
             }
 
         } catch (IOException | NullPointerException | InterruptedException e) {
@@ -88,10 +87,20 @@ public class Controller {
         accessToken = object.get("access_token").getAsString();
     }
 
-    public static HttpResponse<String> getRequest(String input) throws IOException, InterruptedException {
+    public static HttpResponse<String> getRequest(String endpoint, int offset) throws IOException, InterruptedException {
         HttpRequest getReleases = HttpRequest.newBuilder()
                 .header("Authorization", "Bearer "+ accessToken)
-                .uri(URI.create(Data.playListAPI + input))
+                .uri(URI.create(String.format(Data.playListAPI + endpoint,offset, Data.entriesPerPage)))
+                .GET()
+                .build();
+        HttpClient client = HttpClient.newBuilder()
+                .build();
+        return client.send(getReleases, HttpResponse.BodyHandlers.ofString());
+    }
+    public static HttpResponse<String> getRequestWithCustomLimit(String endpoint, int offset, int limit) throws IOException, InterruptedException {
+        HttpRequest getReleases = HttpRequest.newBuilder()
+                .header("Authorization", "Bearer "+ accessToken)
+                .uri(URI.create(String.format(Data.playListAPI + endpoint,offset, limit)))
                 .GET()
                 .build();
         HttpClient client = HttpClient.newBuilder()
@@ -100,24 +109,24 @@ public class Controller {
     }
 
 
-    public static HttpResponse<String> getPlaylists(String input, String input2) throws IOException, InterruptedException {
-        HttpResponse<String> response = getRequest(input);
-        String id ="";
+    public static HttpResponse<String> getPlaylists(String endpoint,int offset, String input2) throws IOException, InterruptedException {
+        HttpResponse<String> response = getRequestWithCustomLimit(endpoint, offset, 25);
+        String id = "";
         JsonObject responseObject = JsonParser.parseString(response.body()).getAsJsonObject();
         JsonObject categories = responseObject.getAsJsonObject("categories");
         JsonArray items = categories.getAsJsonArray("items");
-        for(JsonElement item :items){
+        for (JsonElement item : items) {
             JsonObject itemObject = item.getAsJsonObject();
             String name = itemObject.get("name").getAsString();
-            if(name.equalsIgnoreCase(input2)){
+            if (name.equalsIgnoreCase(input2)) {
                 id = itemObject.get("id").getAsString();
                 break;
             }
         }
-        if(id.equals("")){
+        if (id.equals("")) {
             System.out.println("Unknown category name.");
             return null;
         }
-        return getRequest(String.format(Data.getPlaylists, id));
+        return getRequest(String.format(Data.getPlaylists, id), offset);
     }
 }
